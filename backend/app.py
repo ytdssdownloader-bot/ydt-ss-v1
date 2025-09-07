@@ -42,7 +42,7 @@ def download_video():
         'noplaylist': True,
         'quiet': True,
         'no_warnings': True,
-        'outtmpl': '-',  # Stream output
+        # 'outtmpl': '-',  # Stream output
     }
 
 
