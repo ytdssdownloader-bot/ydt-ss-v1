@@ -6,7 +6,8 @@ import io
 app = Flask(__name__)
 CORS(app)
 
-COOKIES_FILE = 'cookies.txt'  # Your exported cookies
+# COOKIES_FILE = 'cookies.txt'  # Your exported cookies
+COOKIES_FILE = '/etc/secrets/cookies.txt'
 
 @app.route('/download', methods=['POST'])
 def download_video():
