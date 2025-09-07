@@ -24,6 +24,7 @@ def download_video():
         'quiet': True,
         'no_warnings': True,
         'outtmpl': '-',  # Stream output
+        'cookiefile_save': False,      # <-- Prevent saving cookies
     }
 
     try:
