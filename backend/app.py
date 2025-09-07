@@ -1,15 +1,12 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 import yt_dlp
-import os
+import io
 
 app = Flask(__name__)
 CORS(app)
 
-DOWNLOAD_FOLDER = 'downloads'
-
-if not os.path.exists(DOWNLOAD_FOLDER):
-    os.makedirs(DOWNLOAD_FOLDER)
+COOKIES_FILE = 'cookies.txt'  # Your exported cookies
 
 @app.route('/download', methods=['POST'])
 def download_video():
@@ -20,16 +17,27 @@ def download_video():
         return jsonify({'error': 'URL is required'}), 400
 
     ydl_opts = {
-        'outtmpl': f'{DOWNLOAD_FOLDER}/%(title)s.%(ext)s',
         'format': 'best',
+        'cookiefile': COOKIES_FILE,
+        'noplaylist': True,
+        'quiet': True,
+        'no_warnings': True,
+        'outtmpl': '-',  # Stream output
     }
 
     try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=True)
-            file_path = ydl.prepare_filename(info)
+        def generate():
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(url, download=False)
+                stream_url = info.get('url')
 
-        return send_file(file_path, as_attachment=True)
+                import requests
+                with requests.get(stream_url, stream=True) as r:
+                    for chunk in r.iter_content(chunk_size=8192):
+                        if chunk:
+                            yield chunk
+
+        return Response(generate(), content_type='video/mp4')
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500

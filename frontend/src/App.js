@@ -5,48 +5,69 @@ function App() {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleDownload = async () => {
+  const downloadVideo = async () => {
+    if (!url) return alert("Please enter a YouTube URL");
+
     setLoading(true);
     try {
       const response = await axios.post(
-        "http://localhost:5000/download",
+        // "https://your-backend.onrender.com/download",
+        "http://127.0.0.1:5000/download",
         { url },
-        {
-          responseType: "blob",
-        }
+        { responseType: "blob" }
       );
 
-      const blob = new Blob([response.data]);
+      const blob = new Blob([response.data], { type: "video/mp4" });
       const link = document.createElement("a");
       link.href = window.URL.createObjectURL(blob);
-      link.download = "video.mp4"; // You can later return real filename from backend
+      link.download = "video.mp4";
       link.click();
     } catch (error) {
-      console.error(error);
-      alert("Download failed");
+      console.error("Download failed:", error.response?.data || error.message);
+      alert("Download failed. Check console for details.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
-    <div style={{ padding: "50px" }}>
-      <h1>YouTube Video Downloader</h1>
+    <div style={styles.container}>
+      <h1 style={styles.title}>YouTube Video Downloader</h1>
       <input
         type="text"
         placeholder="Enter YouTube URL"
         value={url}
         onChange={(e) => setUrl(e.target.value)}
-        style={{ width: "400px", padding: "10px" }}
+        style={styles.input}
       />
-      <button
-        onClick={handleDownload}
-        disabled={loading}
-        style={{ marginLeft: "10px", padding: "10px" }}
-      >
+      <button onClick={downloadVideo} style={styles.button} disabled={loading}>
         {loading ? "Downloading..." : "Download"}
       </button>
     </div>
   );
 }
+
+const styles = {
+  container: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    height: "100vh",
+    fontFamily: "Arial, sans-serif",
+  },
+  title: { marginBottom: 20 },
+  input: {
+    width: 400,
+    padding: 10,
+    marginBottom: 10,
+    fontSize: 16,
+  },
+  button: {
+    padding: "10px 20px",
+    fontSize: 16,
+    cursor: "pointer",
+  },
+};
 
 export default App;
